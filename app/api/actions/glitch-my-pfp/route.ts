@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Transaction, PublicKey, Connection, clusterApiUrl } from '@solana/web3.js';
 import { ACTIONS_CORS_HEADERS, createPostResponse, ActionGetResponse } from '@solana/actions';
+import * as fal from '@fal-ai/serverless-client';
 import axios from 'axios';
 
 const connection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed');
+
+fal.config({
+  credentials: '6fbb6aa3-2ce9-49ee-a350-963f4e379264:3976f7a73dcfcc5a629747061f36a28a'
+});
 
 async function fetchUserNFTs(walletAddress: string) {
   const endpoint = 'https://api.mainnet-beta.solana.com';
@@ -26,8 +31,20 @@ async function fetchUserNFTs(walletAddress: string) {
   }
 }
 
-function createGlitchedNFT(originalNFT: string): string {
-  // Implement glitch logic here
+async function createGlitchedNFT(originalNFT: string) {
+  const result = await fal.subscribe('fal-ai/flux/schnell', {
+    input: {
+      prompt:
+        'photo of a rhino dressed suit and tie sitting at a table in a bar with a bar stools, award winning photography, Elke vogelsang'
+    },
+    logs: true,
+    onQueueUpdate: (update) => {
+      if (update.status === 'IN_PROGRESS') {
+        update.logs.map((log) => log.message).forEach(console.log);
+      }
+    }
+  });
+  console.log(result)
   return `Glitched_${originalNFT}`;
 }
 
@@ -106,7 +123,7 @@ export async function POST(req: NextRequest) {
     const selectedNFT = userNFTs[Math.floor(Math.random() * userNFTs.length)];
 
     // Create a glitched version
-    const glitchedNFT = createGlitchedNFT(selectedNFT.pubkey);
+    const glitchedNFT = await createGlitchedNFT(selectedNFT.pubkey);
 
     // Mint the glitched NFT
     const mintResult = await mintGlitchedNFT(userWallet.toString(), glitchedNFT);
