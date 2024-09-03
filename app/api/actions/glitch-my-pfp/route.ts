@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
     links: {
       actions: [
         {
-          label: 'Pay $SEND',
+          label: 'Pay in $SEND',
           href: '/api/actions/glitch-my-pfp',
           parameters: [
             {
