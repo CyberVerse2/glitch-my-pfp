@@ -5,12 +5,9 @@ import {
   createPostResponse,
   ActionGetResponse,
   MEMO_PROGRAM_ID,
-  ActionPostRequest,
   createActionHeaders
 } from '@solana/actions';
 import {
-  clusterApiUrl,
-  ComputeBudgetProgram,
   Connection,
   PublicKey,
   Transaction,
@@ -20,7 +17,6 @@ import {
   createAssociatedTokenAccountInstruction,
   createTransferInstruction,
   getAssociatedTokenAddress,
-  getOrCreateAssociatedTokenAccount,
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token';
 
@@ -121,18 +117,6 @@ export async function POST(req: NextRequest) {
     const connection = new Connection(
       'https://mainnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
     );
-
-    // const transaction = new Transaction().add(
-    //   // note: `createPostResponse` requires at least 1 non-memo instruction
-    //   ComputeBudgetProgram.setComputeUnitPrice({
-    //     microLamports: 1000
-    //   }),
-    //   new TransactionInstruction({
-    //     programId: new PublicKey(MEMO_PROGRAM_ID),
-    //     data: Buffer.from(prompt, 'utf8'),
-    //     keys: []
-    //   })
-    // );
 
     // Get the associated token addresses
     const fromTokenAddress = await getAssociatedTokenAddress(SEND_TOKEN_ADDRESS, account);
