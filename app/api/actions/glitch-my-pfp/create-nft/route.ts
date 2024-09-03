@@ -77,7 +77,6 @@ export const POST = async (req: Request) => {
           throw 'Unable to confirm the transaction';
         }
       }
-
     } catch (err) {
       if (typeof err == 'string') throw err;
       throw 'Unable to confirm the provided signature';
@@ -87,7 +86,7 @@ export const POST = async (req: Request) => {
       type: 'completed',
       title: 'Geneva',
       icon: new URL(imageUrl!).toString(),
-      label: 'Image Generation Successful',
+      label: `Image Generation Successful. Here is a link to the image: ${imageUrl}`,
       description: `Successfully generated image🎉🔥`
     };
 

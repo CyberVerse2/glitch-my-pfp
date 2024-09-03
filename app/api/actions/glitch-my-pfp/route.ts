@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as {
       account: string;
-      data: { prompt: string; isUltra: boolean };
+      data: { prompt: string; isUltra: Array<string> };
     };
 
     let account: PublicKey;
@@ -185,10 +185,12 @@ export async function POST(req: NextRequest) {
     if (!prompt) {
       throw new Error('Prompt is required');
     }
+    let ultraman = body.data.isUltra || searchParams.get('isUltra');
+    let isUltra: boolean = false;
 
-    const isUltra = (Boolean(body.data.isUltra) || searchParams.get('isUltra')) as boolean;
-
-    console.log(isUltra);
+    if (ultraman[0] === 'ultra') {
+      isUltra = true;
+    }
 
     // Generate image based on prompt
     const imageUrl = await generateImage(prompt, isUltra);
@@ -216,7 +218,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Add transfer instruction
-    const imageGenerationCost = isUltra ? 20000000 : 1000000;
+    const imageGenerationCost = isUltra ? 20000000 : 1000000; // calculate cost based on isUltra
     transaction.add(
       createTransferInstruction(
         fromTokenAddress,
@@ -246,7 +248,7 @@ export async function POST(req: NextRequest) {
     const payload = await createPostResponse({
       fields: {
         transaction,
-        message: `Image generated successfully, Check your wallet for the NFT`,
+        message: `Image generated successfully`,
         links: {
           next: {
             type: 'post',
