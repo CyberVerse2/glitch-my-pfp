@@ -16,12 +16,22 @@ import {
   Transaction,
   TransactionInstruction
 } from '@solana/web3.js';
+import {
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAssociatedTokenAddress,
+  getOrCreateAssociatedTokenAccount,
+  TOKEN_PROGRAM_ID
+} from '@solana/spl-token';
 
 fal.config({
   credentials: '6fbb6aa3-2ce9-49ee-a350-963f4e379264:3976f7a73dcfcc5a629747061f36a28a'
 });
 
 const headers = createActionHeaders();
+
+const SEND_TOKEN_ADDRESS = new PublicKey('SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa');
+const RECIPIENT_ADDRESS = new PublicKey('E5HmSiV9XjnGj6y9KogyHx3U7Q9GzcpRfRZrwosqEL8A');
 
 async function generateImage(prompt: string): Promise<string> {
   const result = (await fal.subscribe('fal-ai/flux/schnell', {
@@ -47,7 +57,7 @@ export async function GET(req: NextRequest) {
     links: {
       actions: [
         {
-          label: 'Generate',
+          label: 'Pay 10 $SEND',
           href: '/api/actions/glitch-my-pfp',
           parameters: [
             {
@@ -92,13 +102,57 @@ export async function POST(req: NextRequest) {
     // Generate image based on prompt
     const imageUrl = await generateImage(prompt);
 
-    const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
+    // const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
+    // const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
+    const connection = new Connection(
+      'https://mainnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
+    );
 
-    const transaction = new Transaction().add(
-      // note: `createPostResponse` requires at least 1 non-memo instruction
-      ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 1000
-      }),
+    // const transaction = new Transaction().add(
+    //   // note: `createPostResponse` requires at least 1 non-memo instruction
+    //   ComputeBudgetProgram.setComputeUnitPrice({
+    //     microLamports: 1000
+    //   }),
+    //   new TransactionInstruction({
+    //     programId: new PublicKey(MEMO_PROGRAM_ID),
+    //     data: Buffer.from(prompt, 'utf8'),
+    //     keys: []
+    //   })
+    // );
+
+    // Get the associated token addresses
+    const fromTokenAddress = await getAssociatedTokenAddress(SEND_TOKEN_ADDRESS, account);
+    const toTokenAddress = await getAssociatedTokenAddress(SEND_TOKEN_ADDRESS, RECIPIENT_ADDRESS);
+
+    const transaction = new Transaction();
+
+    // Check if the recipient's token account exists, if not, create it
+    const toTokenAccount = await connection.getAccountInfo(toTokenAddress);
+    if (!toTokenAccount) {
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          account,
+          toTokenAddress,
+          RECIPIENT_ADDRESS,
+          SEND_TOKEN_ADDRESS
+        )
+      );
+    }
+
+    // Add transfer instruction
+    transaction.add(
+      createTransferInstruction(
+        fromTokenAddress,
+        toTokenAddress,
+        account,
+        1 * 1e9, // 10 SEND tokens (assuming 9 decimals)
+        [],
+        TOKEN_PROGRAM_ID
+      )
+    );
+
+    // Add memo instruction
+    transaction.add(
       new TransactionInstruction({
         programId: new PublicKey(MEMO_PROGRAM_ID),
         data: Buffer.from(prompt, 'utf8'),
@@ -106,9 +160,10 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // set the end user as the fee payer
+    // Set the fee payer
     transaction.feePayer = account;
 
+    // Get the latest blockhash
     transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     const payload = await createPostResponse({
