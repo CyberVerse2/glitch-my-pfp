@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
         links: {
           next: {
             type: 'post',
-            href: `/api/actions/create-nft?url=${imageUrl}`
+            href: `/api/actions/glitch-my-pfp/create-nft?url=${imageUrl}`
           }
         }
       }
