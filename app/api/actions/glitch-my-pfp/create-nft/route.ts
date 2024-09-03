@@ -86,8 +86,8 @@ export const POST = async (req: Request) => {
       type: 'completed',
       title: 'Geneva',
       icon: new URL(imageUrl!).toString(),
-      label: `Image Generation Successful. Here is a link to the image: ${imageUrl}`,
-      description: `Successfully generated image🎉🔥`
+      label: `Image Generation Successful`,
+      description: `Successfully generated image🎉🔥 Here is a link to the image: ${imageUrl}`
     };
 
     return Response.json(payload, {
