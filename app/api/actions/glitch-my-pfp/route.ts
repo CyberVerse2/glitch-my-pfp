@@ -193,10 +193,10 @@ export async function POST(req: NextRequest) {
     // Generate image based on prompt
     const imageUrl = await generateImage(prompt, isUltra);
     // const imageUrl = await generateCnft(account, prompt, Boolean(isUltra));
-    const blinksightsActionIdentityInstruction = await client.getActionIdentityInstructionV2(
-      account as unknown as string,
-      req.url
-    );
+    // const blinksightsActionIdentityInstruction = await client.getActionIdentityInstructionV2(
+    //   account as unknown as string,
+    //   req.url
+    // );
     const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('mainnet-beta'));
 
     // Get the associated token addresses
