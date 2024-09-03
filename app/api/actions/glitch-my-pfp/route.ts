@@ -40,7 +40,7 @@ async function generateImage(prompt: string): Promise<string> {
 export async function GET(req: NextRequest) {
   let response: ActionGetResponse = {
     type: 'action',
-    icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/bhk2ynv0k1n1jtgy9umr`,
+    icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/bqcozox4gqrrtcavemzc`,
     title: 'Geneva',
     description: 'Generate an image based on a prompt',
     label: 'Generate Image',
