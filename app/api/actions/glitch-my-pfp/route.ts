@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
               options: [
                 {
                   label: 'Ultra-Realistic Mode',
-                  value: 'ultra-realistic',
+                  value: 'ultra',
                   selected: false
                 }
               ]
