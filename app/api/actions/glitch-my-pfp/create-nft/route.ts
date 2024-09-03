@@ -13,6 +13,7 @@ import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 // create the standard headers for this route (including CORS)
 const headers = createActionHeaders();
 
+const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('mainnet-beta'));
 /**
  * since this endpoint is only meant to handle the callback request
  * for the action chaining, it does not accept or process GET requests
@@ -25,6 +26,32 @@ export const GET = async (req: Request) => {
 };
 
 export const OPTIONS = async () => Response.json(null, { headers });
+
+async function confirmTransaction(
+  connection: Connection,
+  signature: string,
+  maxRetries = 5,
+  retryDelay = 5000
+) {
+  for (let i = 0; i < maxRetries; i++) {
+    const status = await connection.getSignatureStatus(signature);
+
+    if (
+      status?.value?.confirmationStatus === 'confirmed' ||
+      status?.value?.confirmationStatus === 'finalized'
+    ) {
+      return true;
+    }
+
+    if (status?.value?.err) {
+      throw new Error(`Transaction failed: ${JSON.stringify(status.value.err)}`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, retryDelay));
+  }
+
+  throw new Error('Transaction confirmation timeout');
+}
 
 export const POST = async (req: Request) => {
   try {
@@ -54,32 +81,13 @@ export const POST = async (req: Request) => {
       throw 'Invalid "signature" provided';
     }
 
-    const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
-
-    /**
-     * todo: do we need to manually re-confirm the transaction?
-     * todo: do we need to perform multiple confirmation attempts
-     */
-
+    // In your POST function:
     try {
-      let status = await connection.getSignatureStatus(signature);
-
-      console.log('signature status:', status);
-
-      if (!status) throw 'Unknown signature status';
-
-      // only accept `confirmed` and `finalized` transactions
-      if (status.value?.confirmationStatus) {
-        if (
-          status.value.confirmationStatus != 'confirmed' &&
-          status.value.confirmationStatus != 'finalized'
-        ) {
-          throw 'Unable to confirm the transaction';
-        }
-      }
-    } catch (err) {
-      if (typeof err == 'string') throw err;
-      throw 'Unable to confirm the provided signature';
+      await confirmTransaction(connection, signature);
+      // Proceed with creating the payload
+    } catch (error) {
+      console.error('Transaction confirmation failed:', error);
+      throw 'Unable to confirm the transaction';
     }
 
     const payload: CompletedAction = {
