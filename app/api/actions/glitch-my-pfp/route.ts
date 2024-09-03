@@ -115,7 +115,7 @@ async function generateImage(prompt: string, isUltra: boolean): Promise<string> 
 // }
 
 export async function GET(req: NextRequest) {
-  let response = client.createActionGetResponseV1(req.url, {
+  let response = await client.createActionGetResponseV1(req.url, {
     type: 'action',
     icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
     title: 'Geneva',
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       throw 'Invalid "account" provided';
     }
-    client.trackActionV2(account as unknown as string, req.url);
+    await client.trackActionV2(account as unknown as string, req.url);
 
     const { searchParams } = new URL(req.url);
     console.log(searchParams);
