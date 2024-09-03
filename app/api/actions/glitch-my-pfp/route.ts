@@ -7,17 +7,55 @@ import {
   MEMO_PROGRAM_ID,
   createActionHeaders
 } from '@solana/actions';
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  Transaction,
+  TransactionInstruction
+} from '@solana/web3.js';
 import {
   createAssociatedTokenAccountInstruction,
   createTransferInstruction,
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID
 } from '@solana/spl-token';
+import * as bs58 from 'bs58';
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+import {
+  createTree,
+  fetchMerkleTree,
+  LeafSchema,
+  mintV1,
+  mplBubblegum,
+  parseLeafFromMintV1Transaction
+} from '@metaplex-foundation/mpl-bubblegum';
+import {
+  createSignerFromKeypair,
+  generateSigner,
+  keypairIdentity,
+  none,
+  Pda,
+  publicKey
+} from '@metaplex-foundation/umi';
 
 fal.config({
   credentials: '6fbb6aa3-2ce9-49ee-a350-963f4e379264:3976f7a73dcfcc5a629747061f36a28a'
 });
+
+// const umi = createUmi(
+//   'https://mainnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
+// ).use(mplBubblegum());
+const umi = createUmi(
+  'https://devnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
+).use(mplBubblegum());
+
+// const base58PrivateKey =
+//   '5VVjtHpYNmsxwp7XSntQWWRX7PD8WuAHjakdfumXtR8ho6zKj7ju6MPquL37usGmzjGJ5nD6MgPfMpUN2fvFVqc6';
+const base58PrivateKey =
+  'EATP68qnKvrJjWSkZbwwNvNG9YRaRugudkHcED79ZMERsF9Rkk8WxgG4iofisgR9chZybxMeMyyYymVqem3brQA';
+const privateKey = bs58.decode(base58PrivateKey);
+const keypair = Keypair.fromSecretKey(privateKey);
 
 const headers = createActionHeaders();
 
@@ -38,12 +76,59 @@ async function generateImage(prompt: string): Promise<string> {
   return result.images[0].url;
 }
 
+export async function generateCnft(recipient: any, prompt: string, isUltra: boolean) {
+  const imageUrl = await generateImage(prompt);
+
+  // const merkleTree = generateSigner(umi);
+  // console.log(merkleTree.publicKey);
+  const walletKeypair = umi.eddsa.createKeypairFromSecretKey(keypair.secretKey);
+  console.log(walletKeypair.publicKey);
+  const payer = createSignerFromKeypair(umi, walletKeypair);
+  console.log(payer.publicKey);
+  umi.use(keypairIdentity(payer));
+
+  // const builder = await createTree(umi, {
+  //   merkleTree,
+  //   payer,
+  //   maxDepth: 15,
+  //   maxBufferSize: 64
+  // });
+
+  // await builder.sendAndConfirm(umi);
+  const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
+  const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
+
+  const { signature } = await mintV1(umi, {
+    leafOwner: recipient,
+    merkleTree: merkleTreeAccount.publicKey,
+    metadata: {
+      name: `Geneva-Generated NFT`,
+      uri: imageUrl,
+      sellerFeeBasisPoints: 500, // 5%
+      collection: none(),
+      creators: [{ address: umi.identity.publicKey, verified: false, share: 100 }]
+    }
+  }).sendAndConfirm(umi, { confirm: { commitment: 'finalized' } });
+
+  // setTimeout(async () => {
+  //   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
+  //   console.log(leaf);
+  // }, 60000);
+  const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
+  //
+
+  const rpc = umi.rpc as any;
+  const rpcAsset = await rpc.getAsset(leaf.id);
+  console.log(rpcAsset);
+  return rpcAsset.content.json_uri;
+}
+
 export async function GET(req: NextRequest) {
   let response: ActionGetResponse = {
     type: 'action',
     icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
     title: 'Geneva',
-    description: `Generate an Compressed NFT based on a prompt. 
+    description: `Generate an Compressed NFT based on a prompt. NFTs are on devnet 
   Pay 10 $SEND to generate a normal image
   Pay 20 $SEND to generate an ultra-realistic image`,
     label: 'Generate Image',
@@ -98,17 +183,21 @@ export async function POST(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const prompt = body.data.prompt || searchParams.get('prompt');
+    console.log(searchParams);
+    const prompt = body?.data?.prompt || searchParams.get('prompt');
+    console.log(prompt);
 
     if (!prompt) {
       throw new Error('Prompt is required');
     }
 
-    const isUltra = searchParams.get('isUltra') || body.data.isUltra;
+    // const isUltra = body.data.isUltra;
+    const isUltra = searchParams.get('isUltra');
     console.log(isUltra);
 
     // Generate image based on prompt
-    const imageUrl = await generateImage(prompt);
+    // const imageUrl = await generateImage(prompt);
+    const imageUrl = await generateCnft(account, prompt, Boolean(isUltra));
 
     // const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
     // const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
