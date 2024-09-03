@@ -123,9 +123,9 @@ export async function GET(req: NextRequest) {
     type: 'action',
     icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
     title: 'Geneva',
-    description: `Generate an Compressed NFT based on a prompt. NFTs are on devnet 
-  Pay 10 $SEND to generate a normal image
-  Pay 20 $SEND to generate an ultra-realistic image`,
+    description: `Generate an Image pased on a prompt 
+  10 $SEND to generate a normal image
+  20 $SEND to generate an ultra-realistic image`,
     label: 'Generate Image',
     links: {
       actions: [
@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
     if (!prompt) {
       throw new Error('Prompt is required');
     }
-    let ultraman = body.data.isUltra || searchParams.get('isUltra');
+    let ultraman = body?.data?.isUltra || searchParams.get('isUltra')?.split('');
     let isUltra: boolean = false;
 
     if (ultraman[0] === 'ultra') {
