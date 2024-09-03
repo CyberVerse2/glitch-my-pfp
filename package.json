@@ -12,6 +12,7 @@
     "@fal-ai/serverless-client": "^0.14.2",
     "@metaplex-foundation/js": "^0.20.1",
     "@solana/actions": "^1.6.4",
+    "@solana/spl-token": "^0.4.8",
     "@solana/web3.js": "^1.95.3",
     "axios": "^1.7.7",
     "next": "14.2.7",
