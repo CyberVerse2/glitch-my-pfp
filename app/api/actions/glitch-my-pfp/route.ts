@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       actions: [
         {
           label: 'Generate',
-          href: '/api/generate-image',
+          href: '/api/glitch-my-pfp',
           parameters: [
             {
               name: 'prompt',
