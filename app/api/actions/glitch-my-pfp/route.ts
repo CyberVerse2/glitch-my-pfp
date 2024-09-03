@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
         fromTokenAddress,
         toTokenAddress,
         account,
-        1 * 1e9, // 10 SEND tokens (assuming 9 decimals)
+        5, // 10 SEND tokens (assuming 9 decimals)
         [],
         TOKEN_PROGRAM_ID
       )
