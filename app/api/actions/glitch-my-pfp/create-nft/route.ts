@@ -37,7 +37,6 @@ export const POST = async (req: Request) => {
      */
     const body: NextActionPostRequest = await req.json();
 
-    // body will contain the user's `account` and `memo` input from the user
     console.log('body:', body);
 
     let account: PublicKey;
@@ -79,8 +78,6 @@ export const POST = async (req: Request) => {
         }
       }
 
-      // todo: check for a specific confirmation status if desired
-      // if (status.value?.confirmationStatus != "confirmed")
     } catch (err) {
       if (typeof err == 'string') throw err;
       throw 'Unable to confirm the provided signature';
@@ -90,10 +87,8 @@ export const POST = async (req: Request) => {
       type: 'completed',
       title: 'Geneva',
       icon: new URL(imageUrl!).toString(),
-      label: 'Complete!',
-      description:
-        `You have now completed an action chain! ` +
-        `Here was the signature from the last action's transaction: ${signature} `
+      label: 'Image Generation Successful',
+      description: `Successfully generated image🎉🔥`
     };
 
     return Response.json(payload, {
