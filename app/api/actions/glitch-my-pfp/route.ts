@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       actions: [
         {
           label: 'Generate',
-          href: '/api/actions/generate-image',
+          href: '/api/actions/glitch-my-pfp',
           parameters: [
             {
               name: 'prompt',
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
         links: {
           next: {
             type: 'post',
-            href: `/api/actions/generate-image/create-nft?url=${imageUrl}`
+            href: `/api/actions/glitch-my-pfp/create-nft?url=${imageUrl}`
           }
         }
       }
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       headers: ACTIONS_CORS_HEADERS
     });
   } catch (err) {
-    console.error('Error in POST /api/generate-image', err);
+    console.error('Error in POST /api/glitch-my-pfp', err);
     let message = 'An unknown error occurred';
     if (err instanceof Error) message = err.message;
     return new Response(message, {
