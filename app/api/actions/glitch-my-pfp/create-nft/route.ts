@@ -35,6 +35,7 @@ async function confirmTransaction(
 ) {
   for (let i = 0; i < maxRetries; i++) {
     const status = await connection.getSignatureStatus(signature);
+    console.log('Signature status:', status);
 
     if (
       status?.value?.confirmationStatus === 'confirmed' ||
