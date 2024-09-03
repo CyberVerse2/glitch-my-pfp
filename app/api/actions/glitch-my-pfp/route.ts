@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
     links: {
       actions: [
         {
-          label: 'Pay 10 $SEND',
+          label: 'Pay 5 $SEND',
           href: '/api/actions/glitch-my-pfp',
           parameters: [
             {
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
         fromTokenAddress,
         toTokenAddress,
         account,
-        5, // 10 SEND tokens (assuming 9 decimals)
+        5000000, // 10 SEND tokens (assuming 9 decimals)
         [],
         TOKEN_PROGRAM_ID
       )
