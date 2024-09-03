@@ -8,6 +8,7 @@ import {
   createActionHeaders
 } from '@solana/actions';
 import {
+  clusterApiUrl,
   Connection,
   Keypair,
   PublicKey,
@@ -50,20 +51,14 @@ const umi = createUmi(
   'https://devnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
 ).use(mplBubblegum());
 
-// const base58PrivateKey =
-//   '5VVjtHpYNmsxwp7XSntQWWRX7PD8WuAHjakdfumXtR8ho6zKj7ju6MPquL37usGmzjGJ5nD6MgPfMpUN2fvFVqc6';
-const base58PrivateKey =
-  'EATP68qnKvrJjWSkZbwwNvNG9YRaRugudkHcED79ZMERsF9Rkk8WxgG4iofisgR9chZybxMeMyyYymVqem3brQA';
-const privateKey = bs58.decode(base58PrivateKey);
-const keypair = Keypair.fromSecretKey(privateKey);
-
 const headers = createActionHeaders();
 
 const SEND_TOKEN_ADDRESS = new PublicKey('SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa');
 const RECIPIENT_ADDRESS = new PublicKey('E5HmSiV9XjnGj6y9KogyHx3U7Q9GzcpRfRZrwosqEL8A');
 
-async function generateImage(prompt: string): Promise<string> {
-  const result = (await fal.subscribe('fal-ai/flux/schnell', {
+async function generateImage(prompt: string, isUltra: boolean): Promise<string> {
+  const model = isUltra ? 'fal-ai/flux-realism' : 'fal-ai/flux/schnell';
+  const result = (await fal.subscribe(model, {
     input: { prompt },
     logs: true,
     onQueueUpdate: (update) => {
@@ -76,52 +71,52 @@ async function generateImage(prompt: string): Promise<string> {
   return result.images[0].url;
 }
 
-export async function generateCnft(recipient: any, prompt: string, isUltra: boolean) {
-  const imageUrl = await generateImage(prompt);
+// export async function generateCnft(recipient: any, prompt: string, isUltra: boolean) {
+//   const imageUrl = await generateImage(prompt);
 
-  // const merkleTree = generateSigner(umi);
-  // console.log(merkleTree.publicKey);
-  const walletKeypair = umi.eddsa.createKeypairFromSecretKey(keypair.secretKey);
-  console.log(walletKeypair.publicKey);
-  const payer = createSignerFromKeypair(umi, walletKeypair);
-  console.log(payer.publicKey);
-  umi.use(keypairIdentity(payer));
+//   // const merkleTree = generateSigner(umi);
+//   // console.log(merkleTree.publicKey);
+//   // const walletKeypair = umi.eddsa.createKeypairFromSecretKey(keypair.secretKey);
+//   // console.log(walletKeypair.publicKey);
+//   // const payer = createSignerFromKeypair(umi, walletKeypair);
+//   // console.log(payer.publicKey);
+//   // umi.use(keypairIdentity(payer));
 
-  // const builder = await createTree(umi, {
-  //   merkleTree,
-  //   payer,
-  //   maxDepth: 15,
-  //   maxBufferSize: 64
-  // });
+//   // const builder = await createTree(umi, {
+//   //   merkleTree,
+//   //   payer,
+//   //   maxDepth: 15,
+//   //   maxBufferSize: 64
+//   // });
 
-  // await builder.sendAndConfirm(umi);
-  const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
-  const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
+//   // await builder.sendAndConfirm(umi);
+//   const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
+//   const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
 
-  const { signature } = await mintV1(umi, {
-    leafOwner: recipient,
-    merkleTree: merkleTreeAccount.publicKey,
-    metadata: {
-      name: `Geneva-Generated NFT`,
-      uri: imageUrl,
-      sellerFeeBasisPoints: 500, // 5%
-      collection: none(),
-      creators: [{ address: umi.identity.publicKey, verified: false, share: 100 }]
-    }
-  }).sendAndConfirm(umi, { confirm: { commitment: 'finalized' } });
+//   const { signature } = await mintV1(umi, {
+//     leafOwner: recipient,
+//     merkleTree: merkleTreeAccount.publicKey,
+//     metadata: {
+//       name: `Geneva-Generated NFT`,
+//       uri: imageUrl,
+//       sellerFeeBasisPoints: 500, // 5%
+//       collection: none(),
+//       creators: [{ address: umi.identity.publicKey, verified: false, share: 100 }]
+//     }
+//   }).sendAndConfirm(umi, { confirm: { commitment: 'finalized' } });
 
-  // setTimeout(async () => {
-  //   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
-  //   console.log(leaf);
-  // }, 60000);
-  const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
-  //
+//   // setTimeout(async () => {
+//   //   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
+//   //   console.log(leaf);
+//   // }, 60000);
+//   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
+//   //
 
-  const rpc = umi.rpc as any;
-  const rpcAsset = await rpc.getAsset(leaf.id);
-  console.log(rpcAsset);
-  return rpcAsset.content.json_uri;
-}
+//   const rpc = umi.rpc as any;
+//   const rpcAsset = await rpc.getAsset(leaf.id);
+//   console.log(rpcAsset);
+//   return rpcAsset.content.json_uri;
+// }
 
 export async function GET(req: NextRequest) {
   let response: ActionGetResponse = {
@@ -191,19 +186,15 @@ export async function POST(req: NextRequest) {
       throw new Error('Prompt is required');
     }
 
-    // const isUltra = body.data.isUltra;
-    const isUltra = searchParams.get('isUltra');
+    const isUltra = (Boolean(body.data.isUltra) || searchParams.get('isUltra')) as boolean;
+
     console.log(isUltra);
 
     // Generate image based on prompt
-    // const imageUrl = await generateImage(prompt);
-    const imageUrl = await generateCnft(account, prompt, Boolean(isUltra));
+    const imageUrl = await generateImage(prompt, isUltra);
+    // const imageUrl = await generateCnft(account, prompt, Boolean(isUltra));
 
-    // const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
-    // const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
-    const connection = new Connection(
-      'https://mainnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
-    );
+    const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('mainnet-beta'));
 
     // Get the associated token addresses
     const fromTokenAddress = await getAssociatedTokenAddress(SEND_TOKEN_ADDRESS, account);
