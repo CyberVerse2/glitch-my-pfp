@@ -69,9 +69,10 @@ export const OPTIONS = async () => Response.json(null, { headers });
 
 export async function POST(req: NextRequest) {
   try {
-    const body: ActionPostRequest<{ memo: string }> & {
-      params: ActionPostRequest<{ memo: string }>['data'];
-    } = await req.json();
+    const body = (await req.json()) as {
+      account: string;
+      data: { prompt: string };
+    };
 
     let account: PublicKey;
     try {
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const prompt = searchParams.get('prompt');
+    const prompt = body.data.prompt || searchParams.get('prompt');
 
     if (!prompt) {
       throw new Error('Prompt is required');
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
     const imageUrl = await generateImage(prompt);
 
     const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
-    
+
     const transaction = new Transaction().add(
       // note: `createPostResponse` requires at least 1 non-memo instruction
       ComputeBudgetProgram.setComputeUnitPrice({
