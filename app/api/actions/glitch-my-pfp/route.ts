@@ -1,5 +1,6 @@
 import * as fal from '@fal-ai/serverless-client';
 import { NextRequest, NextResponse } from 'next/server';
+import { BlinksightsClient } from 'blinksights-sdk';
 import {
   ACTIONS_CORS_HEADERS,
   createPostResponse,
@@ -43,6 +44,8 @@ import {
 fal.config({
   credentials: process.env.FAL_AI_API_KEY
 });
+
+const client = new BlinksightsClient(process.env.BLINKSIGHTS_API_KEY!);
 
 const headers = createActionHeaders();
 
@@ -112,7 +115,7 @@ async function generateImage(prompt: string, isUltra: boolean): Promise<string> 
 // }
 
 export async function GET(req: NextRequest) {
-  let response: ActionGetResponse = {
+  let response = client.createActionGetResponseV1(req.url, {
     type: 'action',
     icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
     title: 'Geneva',
@@ -147,7 +150,7 @@ export async function GET(req: NextRequest) {
         }
       ]
     }
-  };
+  });
 
   return NextResponse.json(response, {
     headers: ACTIONS_CORS_HEADERS
@@ -169,6 +172,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       throw 'Invalid "account" provided';
     }
+    client.trackActionV2(account as unknown as string, req.url);
 
     const { searchParams } = new URL(req.url);
     console.log(searchParams);
@@ -188,7 +192,10 @@ export async function POST(req: NextRequest) {
     // Generate image based on prompt
     const imageUrl = await generateImage(prompt, isUltra);
     // const imageUrl = await generateCnft(account, prompt, Boolean(isUltra));
-
+    const blinksightsActionIdentityInstruction = await client.getActionIdentityInstructionV2(
+      account as unknown as string,
+      req.url
+    );
     const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('mainnet-beta'));
 
     // Get the associated token addresses
@@ -223,14 +230,8 @@ export async function POST(req: NextRequest) {
       )
     );
 
-    // Add memo instruction
-    transaction.add(
-      new TransactionInstruction({
-        programId: new PublicKey(MEMO_PROGRAM_ID),
-        data: Buffer.from(prompt, 'utf8'),
-        keys: []
-      })
-    );
+    // Add blinksights action identity instruction
+    transaction.add(blinksightsActionIdentityInstruction!);
 
     // Set the fee payer
     transaction.feePayer = account;
