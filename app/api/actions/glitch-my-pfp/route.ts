@@ -40,7 +40,7 @@ import {
   Pda,
   publicKey
 } from '@metaplex-foundation/umi';
-
+console.log(process.env)
 fal.config({
   credentials: process.env.FAL_AI_API_KEY
 });
