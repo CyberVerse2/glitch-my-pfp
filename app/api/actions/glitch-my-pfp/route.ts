@@ -52,18 +52,32 @@ export async function GET(req: NextRequest) {
     type: 'action',
     icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
     title: 'Geneva',
-    description: 'Generate an image based on a prompt',
+    description: `Generate an image based on a prompt. 
+    Pay 10 $SEND to generate a realistic image or
+    20 $SEND to generate an ultra-realistic image`,
     label: 'Generate Image',
     links: {
       actions: [
         {
-          label: 'Pay 5 $SEND',
+          label: 'Pay $SEND',
           href: '/api/actions/glitch-my-pfp',
           parameters: [
             {
               name: 'prompt',
-              label: 'Enter your image generation prompt',
+              label: 'Let your mind go wild😅',
               type: 'textarea'
+            }
+          ]
+        },
+        {
+          label: 'Ultra-realistic Mode',
+          href: '/api/actions/glitch-my-pfp',
+          parameters: [
+            {
+              name: 'stuff',
+              label: 'Ultra-Realistic Mode',
+              type: 'checkbox',
+              options: []
             }
           ]
         }
