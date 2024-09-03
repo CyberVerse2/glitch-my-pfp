@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       throw 'Invalid "account" provided';
     }
-    // await client.trackActionV2(account as unknown as string, req.url)
+    await client.trackActionV2(account as unknown as string, req.url)
 
     const { searchParams } = new URL(req.url);
     console.log(searchParams);
@@ -233,6 +233,13 @@ export async function POST(req: NextRequest) {
 
     // Add blinksights action identity instruction
     // transaction.add(blinksightsActionIdentityInstruction!);
+    transaction.add(
+      new TransactionInstruction({
+        programId: new PublicKey(MEMO_PROGRAM_ID),
+        data: Buffer.from(prompt, 'utf8'),
+        keys: []
+      })
+    );
 
     // Set the fee payer
     transaction.feePayer = account;
