@@ -7,12 +7,7 @@ import {
   MEMO_PROGRAM_ID,
   createActionHeaders
 } from '@solana/actions';
-import {
-  Connection,
-  PublicKey,
-  Transaction,
-  TransactionInstruction
-} from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import {
   createAssociatedTokenAccountInstruction,
   createTransferInstruction,
@@ -48,9 +43,9 @@ export async function GET(req: NextRequest) {
     type: 'action',
     icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
     title: 'Geneva',
-    description: `Generate an image based on a prompt. 
-    Pay 10 $SEND to generate a realistic image or
-    20 $SEND to generate an ultra-realistic image`,
+    description: `Generate an Compressed NFT based on a prompt. 
+  Pay 10 $SEND to generate a normal image
+  Pay 20 $SEND to generate an ultra-realistic image`,
     label: 'Generate Image',
     links: {
       actions: [
@@ -60,12 +55,12 @@ export async function GET(req: NextRequest) {
           parameters: [
             {
               name: 'prompt',
-              label: 'Let your mind go wild😅',
+              label: 'Go wild..',
               type: 'textarea'
             },
             {
-              name: 'stuff',
-              label: 'Ultra-Realistic Mode',
+              name: 'isUltra',
+              label: '',
               type: 'checkbox',
               options: [
                 {
@@ -92,7 +87,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as {
       account: string;
-      data: { prompt: string };
+      data: { prompt: string; isUltra: boolean };
     };
 
     let account: PublicKey;
@@ -108,6 +103,9 @@ export async function POST(req: NextRequest) {
     if (!prompt) {
       throw new Error('Prompt is required');
     }
+
+    const isUltra = searchParams.get('isUltra') || body.data.isUltra;
+    console.log(isUltra);
 
     // Generate image based on prompt
     const imageUrl = await generateImage(prompt);
@@ -138,12 +136,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Add transfer instruction
+    const imageGenerationCost = isUltra ? 20000000 : 1000000;
     transaction.add(
       createTransferInstruction(
         fromTokenAddress,
         toTokenAddress,
         account,
-        5000000, // 10 SEND tokens (assuming 9 decimals)
+        imageGenerationCost, // 10 SEND tokens (assuming 9 decimals)
         [],
         TOKEN_PROGRAM_ID
       )
@@ -167,7 +166,7 @@ export async function POST(req: NextRequest) {
     const payload = await createPostResponse({
       fields: {
         transaction,
-        message: `Image generated successfully`,
+        message: `Image generated successfully, Check your wallet for the NFT`,
         links: {
           next: {
             type: 'post',
