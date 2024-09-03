@@ -41,15 +41,8 @@ import {
 } from '@metaplex-foundation/umi';
 
 fal.config({
-  credentials: '6fbb6aa3-2ce9-49ee-a350-963f4e379264:3976f7a73dcfcc5a629747061f36a28a'
+  credentials: process.env.FAL_AI_API_KEY
 });
-
-// const umi = createUmi(
-//   'https://mainnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
-// ).use(mplBubblegum());
-const umi = createUmi(
-  'https://devnet.helius-rpc.com/?api-key=1d33d108-520d-4e5c-998e-548383eb6665'
-).use(mplBubblegum());
 
 const headers = createActionHeaders();
 
