@@ -66,18 +66,18 @@ export async function GET(req: NextRequest) {
               name: 'prompt',
               label: 'Let your mind go wild😅',
               type: 'textarea'
-            }
-          ]
-        },
-        {
-          label: 'Ultra-realistic Mode',
-          href: '/api/actions/glitch-my-pfp',
-          parameters: [
+            },
             {
               name: 'stuff',
               label: 'Ultra-Realistic Mode',
               type: 'checkbox',
-              options: []
+              options: [
+                {
+                  label: 'Ultra-Realistic Mode',
+                  value: 'ultra-realistic',
+                  selected: false
+                }
+              ]
             }
           ]
         }
