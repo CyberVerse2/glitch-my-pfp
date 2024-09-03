@@ -5,7 +5,8 @@ import {
   createPostResponse,
   ActionGetResponse,
   MEMO_PROGRAM_ID,
-  ActionPostRequest
+  ActionPostRequest,
+  createActionHeaders
 } from '@solana/actions';
 import {
   clusterApiUrl,
@@ -19,6 +20,8 @@ import {
 fal.config({
   credentials: '6fbb6aa3-2ce9-49ee-a350-963f4e379264:3976f7a73dcfcc5a629747061f36a28a'
 });
+
+const headers = createActionHeaders();
 
 async function generateImage(prompt: string): Promise<string> {
   const result = (await fal.subscribe('fal-ai/flux/schnell', {
@@ -45,7 +48,7 @@ export async function GET(req: NextRequest) {
       actions: [
         {
           label: 'Generate',
-          href: '/api/glitch-my-pfp',
+          href: '/api/actions/glitch-my-pfp',
           parameters: [
             {
               name: 'prompt',
@@ -62,7 +65,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-export const OPTIONS = GET;
+export const OPTIONS = async () => Response.json(null, { headers });
 
 export async function POST(req: NextRequest) {
   try {
@@ -86,6 +89,9 @@ export async function POST(req: NextRequest) {
 
     // Generate image based on prompt
     const imageUrl = await generateImage(prompt);
+
+    const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
+    
     const transaction = new Transaction().add(
       // note: `createPostResponse` requires at least 1 non-memo instruction
       ComputeBudgetProgram.setComputeUnitPrice({
@@ -98,7 +104,6 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
     // set the end user as the fee payer
     transaction.feePayer = account;
 

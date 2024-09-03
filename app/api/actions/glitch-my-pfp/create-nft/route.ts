@@ -24,12 +24,13 @@ export const GET = async (req: Request) => {
   });
 };
 
-export const OPTIONS = GET;
+export const OPTIONS = async () => Response.json(null, { headers });
 
 export const POST = async (req: Request) => {
   try {
     const { searchParams } = new URL(req.url);
     const imageUrl = searchParams.get('url');
+    console.log('imageUrl:', imageUrl);
 
     /**
      * we can type the `body.data` to what fields we expect from the GET response above
@@ -88,7 +89,7 @@ export const POST = async (req: Request) => {
     const payload: CompletedAction = {
       type: 'completed',
       title: 'Geneva',
-      icon: imageUrl!,
+      icon: new URL(imageUrl!).toString(),
       label: 'Complete!',
       description:
         `You have now completed an action chain! ` +
@@ -98,13 +99,12 @@ export const POST = async (req: Request) => {
     return Response.json(payload, {
       headers
     });
-  } catch (error) {
-    return Response.json(
-      { message: error },
-      {
-        status: 400,
-        headers
-      }
-    );
+  } catch (err) {
+    let actionError: ActionError = { message: 'An unknown error occurred' };
+    if (typeof err == 'string') actionError.message = err;
+    return Response.json(actionError, {
+      status: 400,
+      headers
+    });
   }
 };
