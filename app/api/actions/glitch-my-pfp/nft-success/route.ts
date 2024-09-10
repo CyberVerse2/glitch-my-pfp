@@ -6,50 +6,21 @@ import {
   createActionHeaders,
   NextActionPostRequest,
   ActionError,
-  CompletedAction,
-  createPostResponse,
-  MEMO_PROGRAM_ID,
-  ActionPostRequest,
-  ActionPostResponse,
-  ActionGetResponse
+  CompletedAction
 } from '@solana/actions';
-import {
-  clusterApiUrl,
-  ComputeBudgetProgram,
-  Connection,
-  PublicKey,
-  Transaction,
-  TransactionInstruction
-} from '@solana/web3.js';
-import { BlinksightsClient } from 'blinksights-sdk';
+import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 
 // create the standard headers for this route (including CORS)
 const headers = createActionHeaders();
 
-const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
-
-const client = new BlinksightsClient(process.env.BLINKSIGHTS_API_KEY!);
+const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('mainnet-beta'));
 /**
  * since this endpoint is only meant to handle the callback request
  * for the action chaining, it does not accept or process GET requests
  */
 export const GET = async (req: Request) => {
-  let response: ActionGetResponse = await client.createActionGetResponseV1(req.url, {
-    type: 'action',
-    icon: `https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/xav9x6oqqsxmn5w9rqhg`,
-    title: 'Geneva',
-    description: `Congratulations! You have successfully generated an image. You can mint it as an nft on devnet.`,
-    label: 'Generate Image',
-    links: {
-      actions: [
-        {
-          label: 'MINT NFT',
-          href: `/api/actions/nft-success`
-        }
-      ]
-    }
-  });
-  return Response.json(response, {
+  return Response.json({ message: 'Method not supported' } as ActionError, {
+    status: 403,
     headers
   });
 };
@@ -120,35 +91,13 @@ export const POST = async (req: Request) => {
       throw 'Unable to confirm the transaction';
     }
 
-    const transaction = new Transaction().add(
-      // note: `createPostResponse` requires at least 1 non-memo instruction
-      ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 1000
-      }),
-      new TransactionInstruction({
-        programId: new PublicKey(MEMO_PROGRAM_ID),
-        data: Buffer.from('geneva', 'utf8'),
-        keys: []
-      })
-    );
-
-    // set the end user as the fee payer
-    transaction.feePayer = account;
-
-    transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-    const payload: ActionPostResponse = await createPostResponse({
-      fields: {
-        transaction,
-        message: 'NFT Minted Successfully',
-        links: {
-          next: {
-            type: 'post',
-            href: `/api/actions/glitch-my-pfp/create-nft?url=${imageUrl}`
-          }
-        }
-      }
-    });
+    const payload: CompletedAction = {
+      type: 'completed',
+      title: 'Geneva',
+      icon: new URL(imageUrl!).toString(),
+      label: `Image Generation Successful`,
+      description: `Successfully generated image🎉🔥 Here is a link to the image: ${imageUrl}`
+    };
 
     return Response.json(payload, {
       headers
