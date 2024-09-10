@@ -26,7 +26,7 @@ import { BlinksightsClient } from 'blinksights-sdk';
 // create the standard headers for this route (including CORS)
 const headers = createActionHeaders();
 
-const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('devnet'));
+const connection = new Connection(process.env.SOLANA_RPC_DEVNET! || clusterApiUrl('devnet'));
 
 const client = new BlinksightsClient(process.env.BLINKSIGHTS_API_KEY!);
 /**
@@ -43,8 +43,8 @@ export const GET = async (req: Request) => {
     links: {
       actions: [
         {
-          label: 'MINT NFT',
-          href: `/api/actions/nft-success`
+          label: 'Mint NFT',
+          href: `/api/actions/glitch-my-pfp/create-nft/nft-success`
         }
       ]
     }
@@ -144,7 +144,7 @@ export const POST = async (req: Request) => {
         links: {
           next: {
             type: 'post',
-            href: `/api/actions/glitch-my-pfp/create-nft?url=${imageUrl}`
+            href: `/api/actions/glitch-my-pfp/create-nft/nft-success?url=${imageUrl}`
           }
         }
       }
