@@ -50,7 +50,7 @@ const client = new BlinksightsClient(process.env.BLINKSIGHTS_API_KEY!);
 const headers = createActionHeaders();
 
 const SEND_TOKEN_ADDRESS = new PublicKey('SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa');
-const RECIPIENT_ADDRESS = new PublicKey('6kexz7VwA5J895tdWaDP6b4S9okQez1Att6E2jzWLXMk');
+const RECIPIENT_ADDRESS = new PublicKey('E5HmSiV9XjnGj6y9KogyHx3U7Q9GzcpRfRZrwosqEL8A');
 
 async function generateImage(prompt: string, isUltra: boolean): Promise<string> {
   const model = isUltra ? 'fal-ai/flux-realism' : 'fal-ai/flux/schnell';
