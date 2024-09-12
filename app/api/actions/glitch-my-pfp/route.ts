@@ -47,6 +47,7 @@ fal.config({
 
 const client = new BlinksightsClient(process.env.BLINKSIGHTS_API_KEY!);
 
+
 const headers = createActionHeaders();
 
 const SEND_TOKEN_ADDRESS = new PublicKey('SENDdRQtYMWaQrBroBrJ2Q53fgVuq95CV9UPGEvpCxa');

@@ -2,6 +2,8 @@
  * Solana Action chaining example
  */
 
+import { mplBubblegum } from '@metaplex-foundation/mpl-bubblegum';
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import {
   createActionHeaders,
   NextActionPostRequest,
@@ -14,6 +16,7 @@ import { clusterApiUrl, Connection, PublicKey } from '@solana/web3.js';
 const headers = createActionHeaders();
 
 const connection = new Connection(process.env.SOLANA_RPC! || clusterApiUrl('mainnet-beta'));
+const umi = createUmi(process.env.SOLANA_RPC!).use(mplBubblegum());
 /**
  * since this endpoint is only meant to handle the callback request
  * for the action chaining, it does not accept or process GET requests
