@@ -67,52 +67,7 @@ async function generateImage(prompt: string, isUltra: boolean): Promise<string> 
   return result.images[0].url;
 }
 
-// export async function generateCnft(recipient: any, prompt: string, isUltra: boolean) {
-//   const imageUrl = await generateImage(prompt);
 
-//   // const merkleTree = generateSigner(umi);
-//   // console.log(merkleTree.publicKey);
-//   // const walletKeypair = umi.eddsa.createKeypairFromSecretKey(keypair.secretKey);
-//   // console.log(walletKeypair.publicKey);
-//   // const payer = createSignerFromKeypair(umi, walletKeypair);
-//   // console.log(payer.publicKey);
-//   // umi.use(keypairIdentity(payer));
-
-//   // const builder = await createTree(umi, {
-//   //   merkleTree,
-//   //   payer,
-//   //   maxDepth: 15,
-//   //   maxBufferSize: 64
-//   // });
-
-//   // await builder.sendAndConfirm(umi);
-//   const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
-//   const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
-
-//   const { signature } = await mintV1(umi, {
-//     leafOwner: recipient,
-//     merkleTree: merkleTreeAccount.publicKey,
-//     metadata: {
-//       name: `Geneva-Generated NFT`,
-//       uri: imageUrl,
-//       sellerFeeBasisPoints: 500, // 5%
-//       collection: none(),
-//       creators: [{ address: umi.identity.publicKey, verified: false, share: 100 }]
-//     }
-//   }).sendAndConfirm(umi, { confirm: { commitment: 'finalized' } });
-
-//   // setTimeout(async () => {
-//   //   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
-//   //   console.log(leaf);
-//   // }, 60000);
-//   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
-//   //
-
-//   const rpc = umi.rpc as any;
-//   const rpcAsset = await rpc.getAsset(leaf.id);
-//   console.log(rpcAsset);
-//   return rpcAsset.content.json_uri;
-// }
 
 export async function GET(req: NextRequest) {
   let response = await client.createActionGetResponseV1(req.url, {

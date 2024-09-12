@@ -22,6 +22,24 @@ import {
   TransactionInstruction
 } from '@solana/web3.js';
 import { BlinksightsClient } from 'blinksights-sdk';
+import * as bs58 from 'bs58';
+import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
+import {
+  createTree,
+  fetchMerkleTree,
+  LeafSchema,
+  mintV1,
+  mplBubblegum,
+  parseLeafFromMintV1Transaction
+} from '@metaplex-foundation/mpl-bubblegum';
+import {
+  createSignerFromKeypair,
+  generateSigner,
+  keypairIdentity,
+  none,
+  Pda,
+  publicKey
+} from '@metaplex-foundation/umi';
 
 // create the standard headers for this route (including CORS)
 const headers = createActionHeaders();
@@ -81,6 +99,37 @@ async function confirmTransaction(
   }
 
   throw new Error('Transaction confirmation timeout');
+}
+
+export async function generateCnft(recipient: any, prompt: string, isUltra: boolean, imageUrl: string) {
+
+  // await builder.sendAndConfirm(umi);
+  const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
+  const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
+
+  const { signature } = await mintV1(umi, {
+    leafOwner: recipient,
+    merkleTree: merkleTreeAccount.publicKey,
+    metadata: {
+      name: `Geneva-Generated NFT`,
+      uri: imageUrl,
+      sellerFeeBasisPoints: 500, // 5%
+      collection: none(),
+      creators: [{ address: umi.identity.publicKey, verified: false, share: 100 }]
+    }
+  }).sendAndConfirm(umi, { confirm: { commitment: 'finalized' } });
+
+  // setTimeout(async () => {
+  //   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
+  //   console.log(leaf);
+  // }, 60000);
+  const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
+  //
+
+  const rpc = umi.rpc as any;
+  const rpcAsset = await rpc.getAsset(leaf.id);
+  console.log(rpcAsset);
+  return rpcAsset.content.json_uri;
 }
 
 export const POST = async (req: Request) => {
