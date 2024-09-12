@@ -102,7 +102,7 @@ async function confirmTransaction(
   throw new Error('Transaction confirmation timeout');
 }
 
-export async function generateCnft(recipient: any, imageUrl: string) {
+async function generateCnft(recipient: any, imageUrl: string) {
   const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
   const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
 
@@ -162,7 +162,9 @@ export const POST = async (req: Request) => {
       throw 'Unable to confirm the transaction';
     }
     console.log(imageUrl, 'from second blink in action chaining');
+
     const cnft = await generateCnft(account, imageUrl!);
+
     if (!cnft) {
       throw 'Unable to generate CNFT';
     }
