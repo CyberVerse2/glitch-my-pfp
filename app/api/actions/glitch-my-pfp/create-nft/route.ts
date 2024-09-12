@@ -45,6 +45,7 @@ import {
 const headers = createActionHeaders();
 
 const connection = new Connection(process.env.SOLANA_RPC_DEVNET! || clusterApiUrl('devnet'));
+const umi = createUmi(process.env.SOLANA_RPC!).use(mplBubblegum());
 
 const client = new BlinksightsClient(process.env.BLINKSIGHTS_API_KEY!);
 /**
@@ -101,9 +102,7 @@ async function confirmTransaction(
   throw new Error('Transaction confirmation timeout');
 }
 
-export async function generateCnft(recipient: any, prompt: string, isUltra: boolean, imageUrl: string) {
-
-  // await builder.sendAndConfirm(umi);
+export async function generateCnft(recipient: any, imageUrl: string) {
   const merkleTreePublicKey = publicKey('Df2vbbooX1u2L8nfaA8cjzZzbsZsNVokA8YKrabk6Y8o');
   const merkleTreeAccount = await fetchMerkleTree(umi, merkleTreePublicKey);
 
@@ -119,12 +118,7 @@ export async function generateCnft(recipient: any, prompt: string, isUltra: bool
     }
   }).sendAndConfirm(umi, { confirm: { commitment: 'finalized' } });
 
-  // setTimeout(async () => {
-  //   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
-  //   console.log(leaf);
-  // }, 60000);
   const leaf: LeafSchema = await parseLeafFromMintV1Transaction(umi, signature);
-  //
 
   const rpc = umi.rpc as any;
   const rpcAsset = await rpc.getAsset(leaf.id);
@@ -163,12 +157,15 @@ export const POST = async (req: Request) => {
     // In your POST function:
     try {
       await confirmTransaction(connection, signature);
-      // Proceed with creating the payload
     } catch (error) {
       console.error('Transaction confirmation failed:', error);
       throw 'Unable to confirm the transaction';
     }
-
+    console.log(imageUrl, 'from second blink in action chaining');
+    const cnft = await generateCnft(account, imageUrl!);
+    if (!cnft) {
+      throw 'Unable to generate CNFT';
+    }
     const transaction = new Transaction().add(
       // note: `createPostResponse` requires at least 1 non-memo instruction
       ComputeBudgetProgram.setComputeUnitPrice({
